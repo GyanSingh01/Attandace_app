@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Field Staff Attendance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        #camera-feed {
+            transform: scaleX(-1); /* Mirror view for selfie camera */
+        }
+        .spinner {
+            border-top-color: #3498db;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- Login View -->
+    <div id="login-view" class="w-full max-w-md mx-auto">
+        <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">FieldForce-AI Login</h1>
+            <p class="text-gray-500 mb-6">Enter your credentials to continue.</p>
+            <form id="login-form">
+                <div class="space-y-4 text-left">
+                    <div>
+                        <label for="user-id" class="block mb-2 text-sm font-medium text-gray-900">User ID / Mobile Number</label>
+                        <input type="text" id="user-id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" placeholder="e.g., 9876543210" required>
+                    </div>
+                    <div>
+                        <label for="password" class="block mb-2 text-sm font-medium text-gray-900">Password</label>
+                        <input type="password" id="password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <button type="submit" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Login
+                </button>
+            </form>
+            <p class="text-xs text-gray-500 mt-4">
+                First time user? <a href="#" class="font-medium text-indigo-600 hover:underline">Create Password</a>
+            </p>
+             <p id="login-error" class="mt-4 text-sm text-red-600 font-semibold"></p>
+        </div>
+    </div>
+
+    <!-- Attendance View (hidden by default) -->
+    <div id="attendance-view" class="w-full max-w-md mx-auto hidden">
+        <div id="main-container" class="bg-white rounded-xl shadow-lg p-6 text-center">
+            <!-- Header -->
+            <header class="mb-6 relative">
+                <h1 class="text-2xl font-bold text-gray-800">FieldForce-AI</h1>
+                <p id="current-time" class="text-gray-500"></p>
+                <button id="logout-btn" class="absolute top-0 right-0 text-sm text-blue-600 hover:underline">Logout</button>
+            </header>
+
+            <!-- Main Content: switches between idle and camera view -->
+            <main id="content-area">
+                <!-- Initial View -->
+                <div id="idle-view">
+                    <div class="mb-6">
+                        <img src="https://placehold.co/120x120/E0E7FF/4338CA?text=Scan+Face" class="rounded-full mx-auto shadow-md border-4 border-white">
+                    </div>
+                    <h2 class="text-xl font-semibold text-gray-700 mb-2">Ready to Clock In, <span id="user-name">User</span>?</h2>
+                    <p class="text-gray-500 mb-6">Press the button below to start face verification.</p>
+                    <button id="start-btn" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-transform transform hover:scale-105">
+                        Verify Attendance
+                    </button>
+                </div>
+                
+                <!-- Camera View (hidden by default) -->
+                <div id="camera-view" class="hidden">
+                    <div class="relative w-full aspect-square rounded-lg overflow-hidden border-4 border-gray-200 mb-4 shadow-inner">
+                        <video id="camera-feed" class="w-full h-full object-cover" autoplay playsinline></video>
+                        <div id="camera-overlay" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                             <div class="spinner w-12 h-12 rounded-full border-4 border-gray-300"></div>
+                        </div>
+                    </div>
+                    <p id="location-info" class="text-sm text-gray-500 mb-4">Fetching location...</p>
+                    <button id="capture-btn" class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        Capture & Submit
+                    </button>
+                     <button id="cancel-btn" class="w-full bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-lg mt-3 hover:bg-gray-300">
+                        Cancel
+                    </button>
+                </div>
+            </main>
+
+            <!-- Footer for status messages -->
+            <footer id="status-footer" class="mt-4 text-sm"></footer>
+        </div>
+    </div>
+    
+    <canvas id="capture-canvas" class="hidden"></canvas>
+    
+    <script src="api_connection.js"></script>
+    <script>
+        // --- VIEW CONTAINERS ---
+        const loginView = document.getElementById('login-view');
+        const attendanceView = document.getElementById('attendance-view');
+        
+        // --- LOGIN ELEMENTS ---
+        const loginForm = document.getElementById('login-form');
+        const userIdInput = document.getElementById('user-id');
+        const passwordInput = document.getElementById('password');
+        const loginError = document.getElementById('login-error');
+
+        // --- ATTENDANCE ELEMENTS ---
+        const startBtn = document.getElementById('start-btn');
+        const captureBtn = document.getElementById('capture-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const idleView = document.getElementById('idle-view');
+        const cameraView = document.getElementById('camera-view');
+        const videoElement = document.getElementById('camera-feed');
+        const canvasElement = document.getElementById('capture-canvas');
+        const locationInfo = document.getElementById('location-info');
+        const statusFooter = document.getElementById('status-footer');
+        const cameraOverlay = document.getElementById('camera-overlay');
+        const currentTimeEl = document.getElementById('current-time');
+        const userNameEl = document.getElementById('user-name');
+
+        let stream = null;
+        let locationData = null;
+        let currentUser = null;
+
+        // --- EVENT LISTENERS ---
+        
+        // Handle Login
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            loginError.textContent = '';
+            const userId = userIdInput.value;
+            const password = passwordInput.value;
+
+            try {
+                const user = await loginUser(userId, password);
+                currentUser = user;
+                userNameEl.textContent = user.name.split(' ')[0]; // Show first name
+                
+                // Switch views
+                loginView.classList.add('hidden');
+                attendanceView.classList.remove('hidden');
+                
+                // Clear form
+                loginForm.reset();
+            } catch (error) {
+                loginError.textContent = error.message;
+            }
+        });
+
+        // Handle Logout
+        logoutBtn.addEventListener('click', () => {
+            currentUser = null;
+            attendanceView.classList.add('hidden');
+            loginView.classList.remove('hidden');
+            // Ensure camera is off and view is reset
+            switchToIdleView();
+        });
+
+        // Start Attendance Process
+        startBtn.addEventListener('click', async () => {
+            idleView.classList.add('hidden');
+            cameraView.classList.remove('hidden');
+            statusFooter.textContent = '';
+            locationInfo.textContent = 'Fetching location...';
+            locationData = null;
+            await startCamera();
+            getGeoLocation();
+        });
+
+        // Capture & Submit Attendance
+        captureBtn.addEventListener('click', async () => {
+            if (!locationData) {
+                displayMessage('error', 'Please wait for location to be acquired.');
+                return;
+            }
+
+            cameraOverlay.classList.remove('hidden');
+            captureBtn.disabled = true;
+            cancelBtn.disabled = true;
+
+            const context = canvasElement.getContext('2d');
+            canvasElement.width = videoElement.videoWidth;
+            canvasElement.height = videoElement.videoHeight;
+            context.translate(canvasElement.width, 0);
+            context.scale(-1, 1);
+            context.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height);
+            
+            const submissionData = {
+                userId: currentUser.id,
+                imageData: canvasElement.toDataURL('image/jpeg', 0.8),
+                location: locationData,
+                timestamp: new Date().toISOString()
+            };
+
+            try {
+                const response = await submitAttendance(submissionData);
+                console.log("Server Response:", response);
+                displayMessage('success', response.message);
+                setTimeout(switchToIdleView, 2000);
+            } catch (error) {
+                console.error("Submission Error:", error);
+                displayMessage('error', error.message);
+                cameraOverlay.classList.add('hidden');
+                captureBtn.disabled = false;
+                cancelBtn.disabled = false;
+            }
+        });
+        
+        // Cancel Camera View
+        cancelBtn.addEventListener('click', switchToIdleView);
+
+
+        // --- HELPER FUNCTIONS ---
+
+        function updateTime() {
+             currentTimeEl.textContent = new Date().toLocaleString('en-US', {
+                weekday: 'long', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        async function startCamera() {
+            try {
+                if (stream) stream.getTracks().forEach(track => track.stop());
+                const constraints = { video: { facingMode: 'user', width: { ideal: 480 }, height: { ideal: 480 } } };
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = stream;
+            } catch (err) {
+                console.error("Camera Error:", err);
+                displayMessage('error', 'Could not access camera. Please check permissions.');
+                switchToIdleView();
+            }
+        }
+
+        function getGeoLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    locationData = {
+                        latitude: position.coords.latitude.toFixed(5),
+                        longitude: position.coords.longitude.toFixed(5)
+                    };
+                    locationInfo.innerHTML = `📍 Location Acquired`;
+                }, error => {
+                    console.error("Geolocation Error:", error);
+                    locationInfo.textContent = '⚠️ Could not get location.';
+                    locationData = { error: 'Unavailable' };
+                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+            } else {
+                locationInfo.textContent = '⚠️ Geolocation is not supported.';
+                locationData = { error: 'Not Supported' };
+            }
+        }
+
+        function switchToIdleView() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            idleView.classList.remove('hidden');
+            cameraView.classList.add('hidden');
+            cameraOverlay.classList.add('hidden');
+            captureBtn.disabled = false;
+            cancelBtn.disabled = false;
+            statusFooter.textContent = '';
+        }
+
+        function displayMessage(type, message) {
+            statusFooter.textContent = message;
+            statusFooter.className = type === 'success' 
+                ? 'mt-4 text-sm text-green-600 font-semibold' 
+                : 'mt-4 text-sm text-red-600 font-semibold';
+        }
+
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Start on the login page
+            loginView.classList.remove('hidden');
+            attendanceView.classList.add('hidden');
+        });
+    </script>
+</body>
+</html>
+

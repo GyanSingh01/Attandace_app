@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Face Recognition Attendance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .nav-active {
+            background-color: #E5E7EB;
+            color: #1F2937;
+        }
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- Login View -->
+    <div id="login-view" class="flex items-center justify-center min-h-screen">
+        <div class="w-full max-w-md">
+            <div class="bg-white rounded-xl shadow-lg p-8 text-center">
+                <h1 class="text-2xl font-bold text-gray-800 mb-2">FieldForce-AI Admin Login</h1>
+                <p class="text-gray-500 mb-6">Please sign in to access the dashboard.</p>
+                <form id="login-form">
+                    <div class="space-y-4 text-left">
+                        <div>
+                            <label for="admin-user-id" class="block mb-2 text-sm font-medium text-gray-900">Admin ID / Mobile Number</label>
+                            <input type="text" id="admin-user-id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" placeholder="e.g., admin@fieldforce.ai" required>
+                        </div>
+                        <div>
+                            <label for="admin-password" class="block mb-2 text-sm font-medium text-gray-900">Password</label>
+                            <input type="password" id="admin-password" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full mt-6 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        Sign In
+                    </button>
+                </form>
+                <p id="login-error" class="mt-4 text-sm text-red-600 font-semibold"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Content View (hidden by default) -->
+    <div id="dashboard-content-view" class="flex h-screen hidden">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-md flex flex-col">
+            <div class="p-6 border-b">
+                <h1 class="text-xl font-bold text-gray-900">FieldForce-AI</h1>
+                <p class="text-xs text-gray-500">Attendance Dashboard</p>
+            </div>
+            <nav id="sidebar-nav" class="flex-1 px-4 py-4">
+                <a href="#dashboard" data-view="dashboard-view" class="flex items-center px-4 py-2 text-gray-700 rounded-md nav-link nav-active">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" /></svg>
+                    Dashboard
+                </a>
+                <a href="#staff" data-view="staff-view" class="flex items-center px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200 rounded-md nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" /></svg>
+                    Staff Management
+                </a>
+                <a href="#logs" data-view="logs-view" class="flex items-center px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200 rounded-md nav-link">
+                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd" /></svg>
+                    Attendance Logs
+                </a>
+                <a href="#reports" data-view="reports-view" class="flex items-center px-4 py-2 mt-2 text-gray-600 hover:bg-gray-200 rounded-md nav-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" viewBox="0 0 20 20" fill="currentColor"><path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z" /><path fill-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z" clip-rule="evenodd" /></svg>
+                    Reports
+                </a>
+            </nav>
+            <div class="p-6 mt-auto border-t">
+                <div class="flex items-center">
+                    <img class="h-10 w-10 rounded-full object-cover" src="https://placehold.co/100x100/E2E8F0/4A5568?text=Admin" alt="Admin avatar">
+                    <div class="ml-3">
+                        <p class="text-sm font-semibold">Admin User</p>
+                        <button id="logout-btn" class="text-xs text-blue-600 hover:underline">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="flex-1 p-6 overflow-y-auto">
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="content-view">
+                <h2 class="text-2xl font-semibold text-gray-800">Dashboard Overview</h2>
+                <p class="text-gray-600">Real-time field staff attendance summary.</p>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
+                    <div class="bg-white p-5 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-green-100 text-green-600">
+                               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">On Duty</p>
+                                <p class="text-2xl font-bold">128</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-red-100 text-red-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">Absent</p>
+                                <p class="text-2xl font-bold">12</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">Late Check-in</p>
+                                <p class="text-2xl font-bold">7</p>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="bg-white p-5 rounded-lg shadow">
+                        <div class="flex items-center">
+                            <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.28-1.25-.743-1.674M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 0c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
+                            </div>
+                            <div class="ml-4">
+                                <p class="text-sm text-gray-500">Total Staff</p>
+                                <p class="text-2xl font-bold">150</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-semibold text-lg mb-4">Live Field Staff Locations</h3>
+                        <img src="https://placehold.co/800x400/E2E8F0/4A5568?text=Live+Map+View" alt="Live Map of Staff Locations" class="rounded-md w-full h-auto object-cover">
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-semibold text-lg mb-4">Recent Activity</h3>
+                        <ul id="activity-log" class="space-y-4"></ul>
+                    </div>
+                </div>
+
+                <div class="mt-8 bg-white p-6 rounded-lg shadow">
+                    <h3 class="font-semibold text-lg mb-4">Recent Attendance Logs</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left text-gray-500">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">Employee</th>
+                                    <th scope="col" class="px-6 py-3">Check-in Time</th>
+                                    <th scope="col" class="px-6 py-3">Location</th>
+                                    <th scope="col" class="px-6 py-3">Status</th>
+                                    <th scope="col" class="px-6 py-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Staff Management View -->
+            <div id="staff-view" class="content-view hidden">
+                 <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 class="text-2xl font-semibold text-gray-800">Staff Management</h2>
+                        <p class="text-gray-600">Manage employee profiles and access.</p>
+                    </div>
+                    <button id="add-staff-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                        Add New Staff
+                    </button>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">Employee</th>
+                                <th scope="col" class="px-6 py-3">Department</th>
+                                <th scope="col" class="px-6 py-3">Status</th>
+                                <th scope="col" class="px-6 py-3">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="staff-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Attendance Logs View -->
+            <div id="logs-view" class="content-view hidden">
+                <h2 class="text-2xl font-semibold text-gray-800">Attendance Logs</h2>
+                <p class="text-gray-600 mb-6">Detailed attendance records for all staff.</p>
+                <div class="bg-white p-4 rounded-lg shadow mb-6 flex items-center space-x-4">
+                    <input type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <input type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                    <select class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                        <option selected>All Employees</option>
+                        <option>Arjun Kumar</option>
+                        <option>Priya Sharma</option>
+                    </select>
+                    <button class="bg-blue-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-blue-700">Filter</button>
+                </div>
+                <div class="bg-white p-6 rounded-lg shadow overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3">Employee</th>
+                                <th scope="col" class="px-6 py-3">Date</th>
+                                <th scope="col" class="px-6 py-3">Check-in</th>
+                                <th scope="col" class="px-6 py-3">Check-out</th>
+                                <th scope="col" class="px-6 py-3">Total Hours</th>
+                                <th scope="col" class="px-6 py-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="full-attendance-log-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Reports View -->
+            <div id="reports-view" class="content-view hidden">
+                <h2 class="text-2xl font-semibold text-gray-800">Reports</h2>
+                <p class="text-gray-600 mb-6">Generate and export attendance reports.</p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="md:col-span-1 bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-semibold text-lg mb-4">Report Options</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900">Report Type</label>
+                                <select class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                    <option>Daily Summary</option>
+                                    <option>Monthly Timesheet</option>
+                                    <option>Late Arrival Report</option>
+                                    <option>Location Mismatch Report</option>
+                                </select>
+                            </div>
+                             <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900">Date Range</label>
+                                <div class="flex items-center space-x-2">
+                                    <input type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                    <span>to</span>
+                                    <input type="date" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                </div>
+                            </div>
+                             <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900">Department</label>
+                                <select class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
+                                    <option>All Departments</option>
+                                    <option>Field Operations</option>
+                                    <option>Sales</option>
+                                    <option>Maintenance</option>
+                                </select>
+                            </div>
+                            <button class="w-full bg-green-600 text-white font-bold py-2.5 px-4 rounded-lg hover:bg-green-700">Generate Report</button>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 bg-white p-6 rounded-lg shadow">
+                        <h3 class="font-semibold text-lg mb-4">Report Preview</h3>
+                        <p class="text-gray-500 text-center mb-4">Late Arrivals - Last 30 Days</p>
+                        <img src="https://placehold.co/800x450/E2E8F0/4A5568?text=Chart+Visualization" alt="Report Chart" class="rounded-md w-full h-auto object-cover">
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Staff Modal -->
+    <div id="add-staff-modal" class="fixed inset-0 z-50 items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="relative bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Add New Staff Member</h3>
+            <form id="add-staff-form">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="staff-name" class="block mb-2 text-sm font-medium text-gray-900">Full Name</label>
+                        <input type="text" id="staff-name" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" required>
+                    </div>
+                    <div>
+                        <label for="staff-id" class="block mb-2 text-sm font-medium text-gray-900">Employee ID</label>
+                        <input type="text" id="staff-id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" required>
+                    </div>
+                    <div>
+                        <label for="staff-department" class="block mb-2 text-sm font-medium text-gray-900">Department</label>
+                        <input type="text" id="staff-department" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" required>
+                    </div>
+                    <div>
+                        <label for="staff-block" class="block mb-2 text-sm font-medium text-gray-900">Block</label>
+                        <input type="text" id="staff-block" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="staff-facility" class="block mb-2 text-sm font-medium text-gray-900">Facility</label>
+                        <input type="text" id="staff-facility" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5" required>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" id="cancel-add-staff-btn" class="bg-gray-200 text-gray-700 font-bold py-2 px-4 rounded-lg hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">Add Staff</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Remove Modal -->
+    <div id="confirm-remove-modal" class="fixed inset-0 z-50 items-center justify-center hidden">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="relative bg-white rounded-lg shadow-lg w-full max-w-sm p-6 text-center">
+            <h3 class="text-lg font-semibold mb-2">Are you sure?</h3>
+            <p class="text-gray-600 mb-6">This action cannot be undone. Do you want to permanently remove <span id="staff-name-to-remove" class="font-bold"></span>?</p>
+            <div class="flex justify-center space-x-4">
+                 <button id="cancel-remove-btn" class="bg-gray-200 text-gray-700 font-bold py-2 px-6 rounded-lg hover:bg-gray-300">Cancel</button>
+                 <button id="confirm-remove-btn" class="bg-red-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-red-700">Remove</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- MOCK DATA ---
+        let mockAttendanceData = [
+            { name: 'Arjun Kumar', time: '09:02 AM', location: 'Site A, Sector 15', status: 'On Time', image: 'https://placehold.co/40x40/93C5FD/4A5568?text=AK' },
+            { name: 'Priya Sharma', time: '09:05 AM', location: 'Client Office, MG Road', status: 'On Time', image: 'https://placehold.co/40x40/FDBA74/4A5568?text=PS' },
+            { name: 'Rohan Verma', time: '09:33 AM', location: 'Warehouse, Industrial Area', status: 'Late', image: 'https://placehold.co/40x40/F9A8D4/4A5568?text=RV' },
+            { name: 'Sunita Singh', time: '08:58 AM', location: 'Site B, Phase 2', status: 'On Time', image: 'https://placehold.co/40x40/A7F3D0/4A5568?text=SS' },
+            { name: 'Vikas Mehra', time: '10:01 AM', location: 'Head Office', status: 'Late', image: 'https://placehold.co/40x40/D1D5DB/4A5568?text=VM' },
+        ];
+        let mockActivityData = [
+            { text: 'An alert was triggered for Rohan Verma (location mismatch).', time: '2 mins ago' },
+            { text: 'Priya Sharma successfully checked-out from Client Office.', time: '15 mins ago' },
+            { text: 'New staff member Sameer Jain was onboarded.', time: '45 mins ago' },
+            { text: 'Vikas Mehra failed a liveness check.', time: '1 hour ago' },
+        ];
+        let mockStaffData = [
+            { id: 'EMP001', name: 'Arjun Kumar', department: 'Field Operations', status: 'Active', image: 'https://placehold.co/40x40/93C5FD/4A5568?text=AK' },
+            { id: 'EMP002', name: 'Priya Sharma', department: 'Sales', status: 'Active', image: 'https://placehold.co/40x40/FDBA74/4A5568?text=PS' },
+            { id: 'EMP003', name: 'Rohan Verma', department: 'Maintenance', status: 'On Leave', image: 'https://placehold.co/40x40/F9A8D4/4A5568?text=RV' },
+            { id: 'EMP004', name: 'Sunita Singh', department: 'Field Operations', status: 'Active', image: 'https://placehold.co/40x40/A7F3D0/4A5568?text=SS' },
+        ];
+        let mockFullAttendanceData = [
+            { name: 'Arjun Kumar', image: 'https://placehold.co/40x40/93C5FD/4A5568?text=AK', date: '2025-10-05', checkIn: '09:02 AM', checkOut: '05:58 PM', hours: '8h 56m', status: 'On Time' },
+            { name: 'Priya Sharma', image: 'https://placehold.co/40x40/FDBA74/4A5568?text=PS', date: '2025-10-05', checkIn: '09:05 AM', checkOut: '06:05 PM', hours: '9h 0m', status: 'On Time' },
+            { name: 'Rohan Verma', image: 'https://placehold.co/40x40/F9A8D4/4A5568?text=RV', date: '2025-10-05', checkIn: '09:33 AM', checkOut: '06:01 PM', hours: '8h 28m', status: 'Late' },
+            { name: 'Sunita Singh', image: 'https://placehold.co/40x40/A7F3D0/4A5568?text=SS', date: '2025-10-05', checkIn: '08:58 AM', checkOut: '06:02 PM', hours: '9h 4m', status: 'On Time' },
+            { name: 'Arjun Kumar', image: 'https://placehold.co/40x40/93C5FD/4A5568?text=AK', date: '2025-10-04', checkIn: '09:00 AM', checkOut: '06:00 PM', hours: '9h 0m', status: 'On Time' },
+             { name: 'Priya Sharma', image: 'https://placehold.co/40x40/FDBA74/4A5568?text=PS', date: '2025-10-04', checkIn: '09:15 AM', checkOut: '06:10 PM', hours: '8h 55m', status: 'Late' },
+        ];
+
+        // --- DOM ELEMENTS ---
+        const loginView = document.getElementById('login-view');
+        const dashboardViewContainer = document.getElementById('dashboard-content-view');
+        const loginForm = document.getElementById('login-form');
+        const loginError = document.getElementById('login-error');
+        const logoutBtn = document.getElementById('logout-btn');
+        
+        // --- STAFF MANAGEMENT ELEMENTS ---
+        const addStaffBtn = document.getElementById('add-staff-btn');
+        const addStaffModal = document.getElementById('add-staff-modal');
+        const addStaffForm = document.getElementById('add-staff-form');
+        const cancelAddStaffBtn = document.getElementById('cancel-add-staff-btn');
+        const staffTableBody = document.getElementById('staff-table-body');
+        const confirmRemoveModal = document.getElementById('confirm-remove-modal');
+        const staffNameToRemoveEl = document.getElementById('staff-name-to-remove');
+        const cancelRemoveBtn = document.getElementById('cancel-remove-btn');
+        const confirmRemoveBtn = document.getElementById('confirm-remove-btn');
+        let staffIdToRemove = null;
+
+
+        // --- DOM POPULATION FUNCTIONS ---
+        function populateAttendanceTable() {
+            const tableBody = document.getElementById('attendance-table');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+            mockAttendanceData.forEach(entry => {
+                const statusClass = entry.status === 'On Time' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                tableBody.innerHTML += `<tr class="bg-white border-b hover:bg-gray-50"><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap flex items-center"><img class="w-10 h-10 rounded-full" src="${entry.image}" alt="${entry.name} image"><div class="pl-3"><div class="text-base font-semibold">${entry.name}</div></div></th><td class="px-6 py-4">${entry.time}</td><td class="px-6 py-4">${entry.location}</td><td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight rounded-full text-xs ${statusClass}">${entry.status}</span></td><td class="px-6 py-4"><a href="#" class="font-medium text-blue-600 hover:underline">View Details</a></td></tr>`;
+            });
+        }
+        function populateActivityLog() {
+            const activityLog = document.getElementById('activity-log');
+            if (!activityLog) return;
+            activityLog.innerHTML = '';
+            mockActivityData.forEach(activity => {
+                activityLog.innerHTML += `<li class="flex items-start"><div class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center"><svg class="w-4 h-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" /></svg></div><div class="ml-3"><p class="text-sm text-gray-700">${activity.text}</p><p class="text-xs text-gray-500">${activity.time}</p></div></li>`;
+            });
+        }
+        function populateStaffTable() {
+            if (!staffTableBody) return;
+            staffTableBody.innerHTML = '';
+            mockStaffData.forEach(staff => {
+                const statusClass = staff.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800';
+                staffTableBody.innerHTML += `<tr class="bg-white border-b hover:bg-gray-50"><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap flex items-center"><img class="w-10 h-10 rounded-full" src="${staff.image}" alt="${staff.name} image"><div class="pl-3"><div class="text-base font-semibold">${staff.name}</div><div class="font-normal text-gray-500">${staff.id}</div></div></th><td class="px-6 py-4">${staff.department}</td><td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight rounded-full text-xs ${statusClass}">${staff.status}</span></td><td class="px-6 py-4 space-x-2"><a href="#" class="font-medium text-blue-600 hover:underline">Edit</a><button data-staff-id="${staff.id}" class="remove-staff-btn font-medium text-red-600 hover:underline">Remove</button></td></tr>`;
+            });
+        }
+        function populateFullAttendanceLog() {
+            const tableBody = document.getElementById('full-attendance-log-body');
+            if (!tableBody) return;
+            tableBody.innerHTML = '';
+            mockFullAttendanceData.forEach(entry => {
+                const statusClass = entry.status === 'On Time' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                tableBody.innerHTML += `<tr class="bg-white border-b hover:bg-gray-50"><th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap flex items-center"><img class="w-10 h-10 rounded-full" src="${entry.image}" alt="${entry.name} image"><div class="pl-3"><div class="text-base font-semibold">${entry.name}</div></div></th><td class="px-6 py-4">${entry.date}</td><td class="px-6 py-4">${entry.checkIn}</td><td class="px-6 py-4">${entry.checkOut}</td><td class="px-6 py-4">${entry.hours}</td><td class="px-6 py-4"><span class="px-2 py-1 font-semibold leading-tight rounded-full text-xs ${statusClass}">${entry.status}</span></td></tr>`;
+            });
+        }
+
+        // --- MODAL VISIBILITY ---
+        function showModal(modal) {
+            modal.style.display = 'flex';
+        }
+        function hideModal(modal) {
+            modal.style.display = 'none';
+        }
+
+        // --- STAFF MANAGEMENT LOGIC ---
+        addStaffBtn.addEventListener('click', () => showModal(addStaffModal));
+        cancelAddStaffBtn.addEventListener('click', () => hideModal(addStaffModal));
+        addStaffModal.querySelector('.modal-backdrop').addEventListener('click', () => hideModal(addStaffModal));
+
+        addStaffForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newStaff = {
+                id: document.getElementById('staff-id').value,
+                name: document.getElementById('staff-name').value,
+                department: document.getElementById('staff-department').value,
+                // Block and Facility are captured but not displayed in the current table.
+                // You can add columns for them if needed.
+                block: document.getElementById('staff-block').value,
+                facility: document.getElementById('staff-facility').value,
+                status: 'Active',
+                image: `https://placehold.co/40x40/D1D5DB/4A5568?text=${document.getElementById('staff-name').value.charAt(0)}`
+            };
+            mockStaffData.push(newStaff);
+            populateStaffTable();
+            addStaffForm.reset();
+            hideModal(addStaffModal);
+        });
+        
+        // --- REMOVE STAFF LOGIC ---
+        staffTableBody.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-staff-btn')) {
+                staffIdToRemove = e.target.getAttribute('data-staff-id');
+                const staff = mockStaffData.find(s => s.id === staffIdToRemove);
+                if (staff) {
+                    staffNameToRemoveEl.textContent = staff.name;
+                    showModal(confirmRemoveModal);
+                }
+            }
+        });
+
+        cancelRemoveBtn.addEventListener('click', () => {
+            staffIdToRemove = null;
+            hideModal(confirmRemoveModal);
+        });
+        
+        confirmRemoveModal.querySelector('.modal-backdrop').addEventListener('click', () => {
+             staffIdToRemove = null;
+            hideModal(confirmRemoveModal);
+        });
+
+        confirmRemoveBtn.addEventListener('click', () => {
+            if (staffIdToRemove) {
+                mockStaffData = mockStaffData.filter(staff => staff.id !== staffIdToRemove);
+                populateStaffTable();
+                staffIdToRemove = null;
+                hideModal(confirmRemoveModal);
+            }
+        });
+
+
+        // --- AUTHENTICATION & NAVIGATION LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+            if (sessionStorage.getItem('isAdminLoggedIn') === 'true') {
+                showDashboard();
+            } else {
+                showLogin();
+            }
+            populateAttendanceTable();
+            populateActivityLog();
+            populateStaffTable();
+            populateFullAttendanceLog();
+
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const userId = document.getElementById('admin-user-id').value;
+                const password = document.getElementById('admin-password').value;
+                if (userId === 'admin' && password === 'password') {
+                    sessionStorage.setItem('isAdminLoggedIn', 'true');
+                    showDashboard();
+                    loginForm.reset();
+                    loginError.textContent = '';
+                } else {
+                    loginError.textContent = 'Invalid credentials. Please try again.';
+                }
+            });
+
+            logoutBtn.addEventListener('click', () => {
+                sessionStorage.removeItem('isAdminLoggedIn');
+                showLogin();
+            });
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const contentViews = document.querySelectorAll('.content-view');
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const viewId = link.getAttribute('data-view');
+                    contentViews.forEach(view => view.classList.add('hidden'));
+                    const targetView = document.getElementById(viewId);
+if (targetView) targetView.classList.remove('hidden');
+                    navLinks.forEach(navLink => navLink.classList.remove('nav-active'));
+                    link.classList.add('nav-active');
+                });
+            });
+        });
+
+        function showLogin() {
+            loginView.classList.remove('hidden');
+            dashboardViewContainer.classList.add('hidden');
+        }
+
+        function showDashboard() {
+            loginView.classList.add('hidden');
+            dashboardViewContainer.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
+
